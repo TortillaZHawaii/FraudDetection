@@ -5,13 +5,21 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"time"
 
 	"github.com/Shopify/sarama"
 )
 
+func getEnvOrDefault(key string, defaultVal string) string {
+	if val, ok := os.LookupEnv(key); ok {
+		return val
+	}
+	return defaultVal
+}
+
 func main() {
 	// Kafka broker addresses
-	brokerList := []string{"localhost:9094"}
+	brokerList := []string{getEnvOrDefault("KAFKA_BROKER", "kafka:9092")}
 
 	// Configuration options for the Kafka producer
 	config := sarama.NewConfig()
@@ -19,14 +27,17 @@ func main() {
 	config.Producer.Retry.Max = 5                    // Retry up to 5 times to produce the message
 
 	// Create a new Kafka async producer
+	log.Println("Creating Kafka producer...")
+
 	producer, err := sarama.NewAsyncProducer(brokerList, config)
 	if err != nil {
 		log.Fatal("Failed to create Kafka producer:", err)
 	}
 	defer producer.Close()
+	log.Println("Kafka producer created successfully")
 
 	// Topic to write messages to
-	topic := "test"
+	topic := getEnvOrDefault("KAFKA_TOPIC", "test-topic")
 
 	// Channel to receive Kafka delivery reports
 	deliveryReports := producer.Errors()
@@ -54,7 +65,13 @@ func main() {
 	}
 
 	// Send the message to the Kafka topic
-	producer.Input() <- message
+	go func() {
+		for {
+			<-time.After(5 * time.Second)
+			producer.Input() <- message
+			log.Printf("Message sent to Kafka topic: %s\n", topic)
+		}
+	}()
 
 	// Wait for OS signal for graceful shutdown
 	<-signals
