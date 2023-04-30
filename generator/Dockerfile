@@ -3,10 +3,10 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN go build -o producer .
+RUN go build -ldflags="-w -s" -o producer .
 
 # Stage 2: Runtime stage
-FROM golang:1.20-alpine
+FROM scratch
 WORKDIR /app
 COPY --from=builder /app/producer .
 
