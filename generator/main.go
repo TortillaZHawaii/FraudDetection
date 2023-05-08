@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"sync"
 	"time"
 
@@ -20,6 +21,41 @@ func getEnvOrDefault(key string, defaultVal string) string {
 func main() {
 	// Kafka broker addresses
 	brokerList := []string{getEnvOrDefault("KAFKA_BROKER", "kafka:9092")}
+	log.Printf("Kafka broker list: %v\n", brokerList)
+
+	cardOwnersCountEnv := getEnvOrDefault("CARD_OWNERS_COUNT", "100")
+	cardCountEnv := getEnvOrDefault("CARD_COUNT", "1000")
+	seedEnv := getEnvOrDefault("SEED", "0")
+	waitTimeMsEnv := getEnvOrDefault("WAIT_TIME_MS", "1000")
+
+	// parse env vars
+	cardOwnersCount, err := strconv.ParseInt(cardOwnersCountEnv, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	log.Printf("Card owners count: %d\n", cardOwnersCount)
+
+	cardCount, err := strconv.ParseInt(cardCountEnv, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	log.Printf("Card count: %d\n", cardCount)
+
+	waitTimeMs, err := strconv.ParseInt(waitTimeMsEnv, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	log.Printf("Wait time (ms): %d\n", waitTimeMs)
+
+	seed, err := strconv.ParseInt(seedEnv, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	if seed != 0 {
+		log.Printf("Seed: %d\n", seed)
+	} else {
+		log.Printf("Seed was not set or was set to zero, using rand/crypto")
+	}
 
 	// Configuration options for the Kafka producer
 	config := sarama.NewConfig()
@@ -58,18 +94,28 @@ func main() {
 		}
 	}()
 
-	// Example message to send
-	message := &sarama.ProducerMessage{
-		Topic: topic,
-		Value: sarama.StringEncoder("Hello, Kafka!"),
-	}
+	ts := NewTransactionSource(seed, cardOwnersCount, cardCount)
 
 	// Send the message to the Kafka topic
 	go func() {
 		for {
-			<-time.After(5 * time.Second)
+			waitTimeNs := waitTimeMs * 1_000_000
+			<-time.After(time.Duration(waitTimeNs))
+			transaction := ts.GetTransaction()
+			messageValue, err := transaction.ToJSON()
+
+			if err != nil {
+				panic(err)
+			}
+
+			// Example message to send
+			message := &sarama.ProducerMessage{
+				Topic: topic,
+				Value: sarama.StringEncoder(string(messageValue)),
+			}
+
 			producer.Input() <- message
-			log.Printf("Message sent to Kafka topic: %s\n", topic)
+			log.Printf("Message %s sent to Kafka topic: %s\n", string(messageValue), topic)
 		}
 	}()
 

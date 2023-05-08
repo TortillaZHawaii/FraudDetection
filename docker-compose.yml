@@ -10,6 +10,10 @@ services:
     environment:
       - KAFKA_BROKERS=localhost:9092
       - KAFKA_TOPIC=test
+      - SEED=0
+      - CARD_COUNT=10
+      - CARD_OWNERS_COUNT=1
+      - WAIT_TIME_MS=5000
     restart: on-failure
     networks:
       - kafka-network
