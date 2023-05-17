@@ -26,7 +26,7 @@ import org.apache.flink.walkthrough.common.entity.Transaction;
 import org.apache.flink.walkthrough.common.source.TransactionSource;
 
 /**
- * Skeleton code for the datastream walkthrough
+ * Skeleton code for the data stream walkthrough
  */
 public class FraudDetectionJob {
 	public static void main(String[] args) throws Exception {

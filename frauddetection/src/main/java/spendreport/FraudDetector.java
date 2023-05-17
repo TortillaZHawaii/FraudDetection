@@ -19,6 +19,10 @@
 package spendreport;
 
 
+import org.apache.flink.api.common.state.ValueState;
+import org.apache.flink.api.common.state.ValueStateDescriptor;
+import org.apache.flink.api.common.typeinfo.Types;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
 import org.apache.flink.walkthrough.common.entity.Alert;
@@ -35,7 +39,7 @@ public class FraudDetector extends KeyedProcessFunction<Long, Transaction, Alert
 	private static final double LARGE_AMOUNT = 500.00;
 	private static final long ONE_MINUTE = 60 * 1000;
 
-	// Fault tolerant map-like state
+	// Fault-tolerant map-like state
 	private transient ValueState<Boolean> flagState;
 	private transient ValueState<Long> timerState;
 
@@ -74,7 +78,7 @@ public class FraudDetector extends KeyedProcessFunction<Long, Transaction, Alert
 	}
 
 	// Initialize the state in operator creation time
-	// ValueState is fault tolerant and stored in the state backend
+	// ValueState is fault-tolerant and stored in the state backend
 	@Override
 	public void open(Configuration parameters) {
 		ValueStateDescriptor<Boolean> flagDescriptor = new ValueStateDescriptor<>(
