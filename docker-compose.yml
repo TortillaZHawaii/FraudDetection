@@ -35,16 +35,19 @@ services:
     build:
       context: ./frauddetection
       dockerfile: Dockerfile
+    command: standalone-job --job-classname spendreport.FraudDetectionJob
     ports:
       - "8081:8081"
-    command: jobmanager
     environment:
       - |
         FLINK_PROPERTIES=
-        jobmanager.rpc.address: jobmanager        
+        jobmanager.rpc.address: jobmanager
+        parallelism.default: 2        
 
   taskmanager:
-    image: flink:1.17-java11
+    build:
+      context: ./frauddetection
+      dockerfile: Dockerfile
     depends_on:
       - jobmanager
     command: taskmanager
@@ -54,6 +57,7 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
         taskmanager.numberOfTaskSlots: 2 
+        parallelism.default: 2
 
 networks:
   kafka-network:

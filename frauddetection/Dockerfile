@@ -14,4 +14,4 @@ FROM flink:${FLINK_TAG} as runtime
 
 COPY --from=build /app/target/frauddetection-0.1.jar /opt/flink/usrlib/frauddetection.jar
 
-ENTRYPOINT [ "standalone-job", "--job-classname", "spendreport.FraudDetectionJob" ]
+# CMD [ "standalone-job", "--job-classname", "spendreport.FraudDetectionJob" ]
