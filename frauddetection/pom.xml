@@ -81,6 +81,21 @@ under the License.
 		    <version>${flink.version}</version>
 		</dependency>
 
+		<!-- Atributes for auto getters, setters etc -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.26</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- JSON -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.15.1</version>
+		</dependency>
+
 		<!-- Add logging framework, to produce console output when running in the IDE. -->
 		<!-- These dependencies are excluded from the application JAR by default. -->
 		<dependency>
