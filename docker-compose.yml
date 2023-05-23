@@ -66,6 +66,13 @@ services:
     networks:
       - kafka-network
 
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+
 networks:
   kafka-network:
     driver: bridge
