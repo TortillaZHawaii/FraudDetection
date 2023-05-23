@@ -9,11 +9,11 @@ services:
       - kafka
     environment:
       - KAFKA_BROKERS=localhost:9092
-      - KAFKA_TOPIC=test
+      - KAFKA_TOPIC=transactions
       - SEED=0
       - CARD_COUNT=10
       - CARD_OWNERS_COUNT=1
-      - WAIT_TIME_MS=5000
+      - WAIT_TIME_MS=5
     restart: on-failure
     networks:
       - kafka-network
@@ -35,6 +35,8 @@ services:
     build:
       context: ./frauddetection
       dockerfile: Dockerfile
+    depends_on:
+      - generator
     command: standalone-job --job-classname spendreport.FraudDetectionJob
     ports:
       - "8081:8081"
@@ -42,7 +44,10 @@ services:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
-        parallelism.default: 2        
+        parallelism.default: 2
+    restart: on-failure  
+    networks:
+     - kafka-network      
 
   taskmanager:
     build:
@@ -58,6 +63,8 @@ services:
         jobmanager.rpc.address: jobmanager
         taskmanager.numberOfTaskSlots: 2 
         parallelism.default: 2
+    networks:
+      - kafka-network
 
 networks:
   kafka-network:

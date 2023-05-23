@@ -20,6 +20,8 @@ package spendreport;
 
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
+import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -55,6 +57,19 @@ public class FraudDetectionJob {
 			.keyBy(CardTransaction::getAccountId)
 			.process(new FraudDetector())
 			.name("fraud-detector");
+
+		KafkaSink<String> alertKafkaSink = KafkaSink.<String>builder()
+				.setBootstrapServers("kafka:9092")
+				.setRecordSerializer(KafkaRecordSerializationSchema.builder()
+						.setTopic("alerts")
+						.setValueSerializationSchema(new SimpleStringSchema())
+						.build()
+				).build();
+
+		alerts
+			.map(Alert::toJson)
+			.sinkTo(alertKafkaSink)
+			.name("kafka-alerts");
 
 		alerts
 			.addSink(new AlertSink())
