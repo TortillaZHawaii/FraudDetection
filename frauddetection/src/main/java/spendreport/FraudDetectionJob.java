@@ -18,12 +18,15 @@
 
 package spendreport;
 
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.walkthrough.common.sink.AlertSink;
-import org.apache.flink.walkthrough.common.entity.Alert;
-import org.apache.flink.walkthrough.common.entity.Transaction;
-import org.apache.flink.walkthrough.common.source.TransactionSource;
+import spendreport.dtos.Alert;
+import spendreport.dtos.CardTransaction;
+
+import java.util.Properties;
 
 /**
  * Skeleton code for the data stream walkthrough
@@ -32,15 +35,24 @@ public class FraudDetectionJob {
 	public static void main(String[] args) throws Exception {
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		DataStream<Transaction> transactions = env
-			.addSource(new TransactionSource())
-			.name("transactions");
+		KafkaSource<String> kafkaSource = KafkaSource.<String>builder()
+				.setBootstrapServers("kafka:9092")
+				.setTopics("transactions")
+				.setGroupId("fraud-detector")
+				.setValueOnlyDeserializer(new SimpleStringSchema())
+				.build();
+
+		DataStream<String> kafkaStream = env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "Kafka Source");
+
+		DataStream<CardTransaction> transactions = kafkaStream
+				.map(CardTransaction::fromString)
+				.name("transactions");
 
 		DataStream<Alert> alerts = transactions
 			// partition the stream according to the id of the account
 			// it allows to have all the transactions of the same account in the same operator instance
 			// and prevents race conditions when updating the state
-			.keyBy(Transaction::getAccountId)
+			.keyBy(CardTransaction::getAccountId)
 			.process(new FraudDetector())
 			.name("fraud-detector");
 

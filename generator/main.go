@@ -73,7 +73,7 @@ func main() {
 	log.Println("Kafka producer created successfully")
 
 	// Topic to write messages to
-	topic := getEnvOrDefault("KAFKA_TOPIC", "test-topic")
+	topic := getEnvOrDefault("KAFKA_TOPIC", "transactions")
 
 	// Channel to receive Kafka delivery reports
 	deliveryReports := producer.Errors()

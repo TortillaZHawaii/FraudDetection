@@ -25,13 +25,13 @@ import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
-import org.apache.flink.walkthrough.common.entity.Alert;
-import org.apache.flink.walkthrough.common.entity.Transaction;
+import spendreport.dtos.Alert;
+import spendreport.dtos.CardTransaction;
 
 /**
  * Skeleton code for implementing a fraud detector.
  */
-public class FraudDetector extends KeyedProcessFunction<Long, Transaction, Alert> {
+public class FraudDetector extends KeyedProcessFunction<String, CardTransaction, Alert> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -43,12 +43,23 @@ public class FraudDetector extends KeyedProcessFunction<Long, Transaction, Alert
 	private transient ValueState<Boolean> flagState;
 	private transient ValueState<Long> timerState;
 
+	// Initialize the state in operator creation time
+	// ValueState is fault-tolerant and stored in the state backend
 	@Override
-	public void processElement(
-			Transaction transaction,
-			Context context,
-			Collector<Alert> collector) throws Exception {
+	public void open(Configuration parameters) {
+		ValueStateDescriptor<Boolean> flagDescriptor = new ValueStateDescriptor<>(
+			"flag",
+			Types.BOOLEAN);
+		flagState = getRuntimeContext().getState(flagDescriptor);
 
+		ValueStateDescriptor<Long> timerDescriptor = new ValueStateDescriptor<>(
+			"timer-state",
+			Types.LONG);
+		timerState = getRuntimeContext().getState(timerDescriptor);
+	}
+
+	@Override
+	public void processElement(CardTransaction transaction, KeyedProcessFunction<String, CardTransaction, Alert>.Context context, Collector<Alert> collector) throws Exception {
 		// Get the current state for the current key
 		Boolean lastTransactionWasSmall = flagState.value();
 
@@ -57,7 +68,8 @@ public class FraudDetector extends KeyedProcessFunction<Long, Transaction, Alert
 			if (transaction.getAmount() > LARGE_AMOUNT) {
 				// Output an alert downstream
 				Alert alert = new Alert();
-				alert.setId(transaction.getAccountId());
+				alert.setTransaction(transaction);
+				alert.setReason("Large amount after small amount");
 
 				collector.collect(alert);
 			}
@@ -75,21 +87,6 @@ public class FraudDetector extends KeyedProcessFunction<Long, Transaction, Alert
 			context.timerService().registerProcessingTimeTimer(timer);
 			timerState.update(timer);
 		}
-	}
-
-	// Initialize the state in operator creation time
-	// ValueState is fault-tolerant and stored in the state backend
-	@Override
-	public void open(Configuration parameters) {
-		ValueStateDescriptor<Boolean> flagDescriptor = new ValueStateDescriptor<>(
-			"flag",
-			Types.BOOLEAN);
-		flagState = getRuntimeContext().getState(flagDescriptor);
-
-		ValueStateDescriptor<Long> timerDescriptor = new ValueStateDescriptor<>(
-			"timer-state",
-			Types.LONG);
-		timerState = getRuntimeContext().getState(timerDescriptor);
 	}
 
 	// Clean up the timer state

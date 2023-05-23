@@ -81,7 +81,7 @@ under the License.
 		    <version>${flink.version}</version>
 		</dependency>
 
-		<!-- Atributes for auto getters, setters etc -->
+		<!-- Attributes for auto getters, setters etc -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -89,7 +89,12 @@ under the License.
 			<scope>provided</scope>
 		</dependency>
 
-		<!-- JSON -->
+		<!-- JSON parsing -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>2.15.1</version>
+		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
@@ -116,6 +121,8 @@ under the License.
 			<version>${log4j.version}</version>
 			<scope>runtime</scope>
 		</dependency>
+
+
 	</dependencies>
 
 	<build>

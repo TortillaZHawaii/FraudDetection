@@ -1,4 +1,10 @@
+package spendreport.dtos;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Data;
+
+import java.util.Date;
 
 @Data
 public class CardTransaction {
@@ -18,4 +24,18 @@ public class CardTransaction {
     private CardOwner owner;
     @JsonProperty("utc")
     private Date utc;
-} 
+
+    public static CardTransaction fromString(String s) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.readValue(s, CardTransaction.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public String getAccountId() {
+        return this.getCard().getCardNumber();
+    }
+}
