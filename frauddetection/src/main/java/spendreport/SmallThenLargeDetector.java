@@ -31,7 +31,7 @@ import spendreport.dtos.CardTransaction;
 /**
  * Skeleton code for implementing a fraud detector.
  */
-public class FraudDetector extends KeyedProcessFunction<String, CardTransaction, Alert> {
+public class SmallThenLargeDetector extends KeyedProcessFunction<String, CardTransaction, Alert> {
 
 	private static final long serialVersionUID = 1L;
 

@@ -24,11 +24,10 @@ import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import spendreport.dtos.Alert;
 import spendreport.dtos.CardTransaction;
-
-import java.util.Properties;
 
 /**
  * Skeleton code for the data stream walkthrough
@@ -50,13 +49,21 @@ public class FraudDetectionJob {
 				.map(CardTransaction::fromString)
 				.name("transactions");
 
-		DataStream<Alert> alerts = transactions
+		KeyedStream<CardTransaction, String> keyedTransactions = transactions
 			// partition the stream according to the id of the account
 			// it allows to have all the transactions of the same account in the same operator instance
 			// and prevents race conditions when updating the state
-			.keyBy(CardTransaction::getAccountId)
-			.process(new FraudDetector())
-			.name("fraud-detector");
+			.keyBy(CardTransaction::getAccountId);
+
+		DataStream<Alert> overLimitAlerts = keyedTransactions
+			.process(new OverLimitDetector())
+			.name("over-limit-alerts");
+
+		DataStream<Alert> smallThenLargeAlerts = keyedTransactions
+			.process(new SmallThenLargeDetector())
+			.name("small-then-large-alerts");
+
+		DataStream<Alert> alerts = overLimitAlerts.union(smallThenLargeAlerts);
 
 		KafkaSink<String> alertKafkaSink = KafkaSink.<String>builder()
 				.setBootstrapServers("kafka:9092")
