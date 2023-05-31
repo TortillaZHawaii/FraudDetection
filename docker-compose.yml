@@ -8,16 +8,28 @@ services:
     depends_on:
       - kafka
     environment:
-      - KAFKA_BROKERS=localhost:9092
+      - KAFKA_BROKERS=kafka:9092
       - KAFKA_TOPIC=transactions
       - SEED=0
       - CARD_COUNT=10
       - CARD_OWNERS_COUNT=1
-      - WAIT_TIME_MS=5
+      - WAIT_TIME_MS=5000
     restart: on-failure
     networks:
       - kafka-network
 
+  alerts-notification-api:
+    build:
+      context: ./alerts-notification-api
+      dockerfile: Dockerfile
+    ports:
+      - "12000:12000"
+    depends_on:
+      - kafka
+    restart: on-failure
+    networks:
+      - kafka-network
+    
   kafka:
     image: "bitnami/kafka:latest"
     ports:

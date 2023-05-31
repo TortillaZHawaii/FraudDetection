@@ -1,32 +1,30 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { Alert } from '../lib/alert';
-import { Kafka } from 'kafkajs';
-
-const kafka = new Kafka({
-    clientId: 'dashboard',
-    brokers: ['kafka:9092']
-})
-
-const consumer = kafka.consumer({ groupId: 'dashboard' })
 
 export default function AlertTable() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
 
   useEffect(() => {
-    async function fetchData() {
-      await consumer.connect();
-      await consumer.subscribe({ topic: 'alerts', fromBeginning: true });
+    const ws = new WebSocket('ws://localhost:12000/ws');
 
-      await consumer.run({
-        eachMessage: async ({ topic, partition, message }) => {
-          if (!message.value) return;
-          const alert = JSON.parse(message.value.toString());
-          setAlerts((prevAlerts) => [...prevAlerts, alert]);
-        },
-      });
-    }
+    console.log('Connecting to websocket');
 
-    fetchData();
+    ws.onopen = () => {
+      console.log('Connected to websocket');
+    };
+
+    ws.onmessage = (event) => {
+      console.log('Received message', event.data);
+      const alert = JSON.parse(event.data);
+      setAlerts((alerts) => [...alerts, alert]);
+    };
+
+    return () => {
+      console.log('Closing websocket');
+      ws.close();
+    };
   }, []);
 
   return (
@@ -42,12 +40,15 @@ export default function AlertTable() {
         </thead>
         <tbody>
           {alerts.map((alert) => (
-            <tr key={alert.transaction.utc.toUTCString()}>
-              <td>{alert.transaction.utc.toUTCString()}</td>
-              <td>{alert.transaction.amount}</td>
+            <tr key={alert.transaction.card.cardNumber}>
               <td>{alert.reason}</td>
-              <td>{alert.transaction.owner.firstName + alert.transaction.owner.lastName}</td>
             </tr>
+            // <tr key={alert.transaction.utc.toUTCString()}>
+            //   <td>{alert.transaction.utc.toUTCString()}</td>
+            //   <td>{alert.transaction.amount}</td>
+            //   <td>{alert.reason}</td>
+            //   <td>{alert.transaction.owner.firstName + alert.transaction.owner.lastName}</td>
+            // </tr>
           ))}
         </tbody>
       </table>
