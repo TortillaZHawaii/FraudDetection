@@ -18,6 +18,28 @@ services:
     networks:
       - kafka-network
 
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    ports:
+      - "9000:9000"
+    environment:
+      - KAFKA_BROKERCONNECT=kafka:9092
+      - JVM_OPTS=-Xms32M -Xmx64M
+      - SERVER_SERVLET_CONTEXTPATH=/
+    depends_on:
+      - kafka
+    networks:
+      - kafka-network
+
+  alerts-reader:
+    build:
+      context: ./alerts-notification-api-py
+      dockerfile: Dockerfile
+    depends_on:
+      - kafka
+    networks:
+      - kafka-network
+
   alerts-notification-api:
     build:
       context: ./alerts-notification-api

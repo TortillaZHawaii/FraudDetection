@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
@@ -39,23 +40,73 @@ func (ar *AlertsReader) Listen() {
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
 
-	consumer, err := sarama.NewConsumer(brokerList, config)
-	if err != nil {
-		log.Fatalf("Error creating consumer: %v\n", err)
+	consumer := Consumer{
+		ready:        make(chan bool),
+		AlertsReader: ar,
 	}
+	ctx, cancel := context.WithCancel(context.Background())
+	client, err := sarama.NewConsumerGroup(brokerList, groupID, config)
+	if err != nil {
+		log.Fatalf("Error creating consumer group: %v\n", err)
+	}
+	topics := []string{topic}
 
 	for {
-		partitionConsumer, err := consumer.ConsumePartition(topic, 0, sarama.OffsetOldest)
-		if err != nil {
+		log.Println("Creating consumer session")
+		if err := client.Consume(ctx, topics, &consumer); err != nil {
 			log.Fatalf("Error creating partition consumer: %v\n", err)
 		}
 
-		for message := range partitionConsumer.Messages() {
-			ar.Alerts <- message.Value
+		if ctx.Err() != nil {
+			break
 		}
 	}
+	log.Println("Closing consumer")
+	cancel()
 }
 
 func (ar *AlertsReader) Close() {
 	ar.open <- false
+}
+
+// Consumer represents a Sarama consumer group consumer
+type Consumer struct {
+	ready        chan bool
+	AlertsReader *AlertsReader
+}
+
+// Setup is run at the beginning of a new session, before ConsumeClaim
+func (consumer *Consumer) Setup(sarama.ConsumerGroupSession) error {
+	// Mark the consumer as ready
+	close(consumer.ready)
+	return nil
+}
+
+// Cleanup is run at the end of a session, once all ConsumeClaim goroutines have exited
+func (consumer *Consumer) Cleanup(sarama.ConsumerGroupSession) error {
+	return nil
+}
+
+// ConsumeClaim must start a consumer loop of ConsumerGroupClaim's Messages().
+func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+	// NOTE:
+	// Do not move the code below to a goroutine.
+	// The `ConsumeClaim` itself is called within a goroutine, see:
+	// https://github.com/Shopify/sarama/blob/main/consumer_group.go#L27-L29
+	for {
+		log.Printf("Waiting for message")
+		select {
+		case message := <-claim.Messages():
+			log.Printf("Message claimed: value = %s, timestamp = %v, topic = %s", string(message.Value), message.Timestamp, message.Topic)
+			consumer.AlertsReader.Alerts <- message.Value
+			session.MarkMessage(message, "")
+			continue
+
+		// Should return when `session.Context()` is done.
+		// If not, will raise `ErrRebalanceInProgress` or `read tcp <ip>:<port>: i/o timeout` when kafka rebalance. see:
+		// https://github.com/Shopify/sarama/issues/1192
+		case <-session.Context().Done():
+			return nil
+		}
+	}
 }

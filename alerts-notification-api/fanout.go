@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -43,8 +44,10 @@ func (f *Fanout) Listen() {
 	for {
 		select {
 		case <-f.openChan:
+			log.Println("Closing fanout")
 			return
 		case alert := <-*f.alerts:
+			log.Printf("Sending alert %s to all connections\n", string(alert))
 			f.mu.Lock()
 			defer f.mu.Unlock()
 			for _, conn := range f.wsConnections {
