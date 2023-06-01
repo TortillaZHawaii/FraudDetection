@@ -30,27 +30,6 @@ services:
       - kafka
     networks:
       - kafka-network
-
-  alerts-reader:
-    build:
-      context: ./alerts-notification-api-py
-      dockerfile: Dockerfile
-    depends_on:
-      - kafka
-    networks:
-      - kafka-network
-
-  alerts-notification-api:
-    build:
-      context: ./alerts-notification-api
-      dockerfile: Dockerfile
-    ports:
-      - "12000:12000"
-    depends_on:
-      - kafka
-    restart: on-failure
-    networks:
-      - kafka-network
     
   kafka:
     image: "bitnami/kafka:latest"
@@ -99,13 +78,6 @@ services:
         parallelism.default: 2
     networks:
       - kafka-network
-
-  dashboard:
-    build:
-      context: ./dashboard
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
 
 networks:
   kafka-network:
