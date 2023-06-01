@@ -36,8 +36,10 @@ public class FraudDetectionJob {
 	public static void main(String[] args) throws Exception {
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
+		String bootstrapServers = "kafkac:9092";
+
 		KafkaSource<String> kafkaSource = KafkaSource.<String>builder()
-				.setBootstrapServers("kafka:9092")
+				.setBootstrapServers(bootstrapServers)
 				.setTopics("transactions")
 				.setGroupId("fraud-detector")
 				.setValueOnlyDeserializer(new SimpleStringSchema())
@@ -66,7 +68,7 @@ public class FraudDetectionJob {
 		DataStream<Alert> alerts = overLimitAlerts.union(smallThenLargeAlerts);
 
 		KafkaSink<String> alertKafkaSink = KafkaSink.<String>builder()
-				.setBootstrapServers("kafka:9092")
+				.setBootstrapServers(bootstrapServers)
 				.setRecordSerializer(KafkaRecordSerializationSchema.builder()
 						.setTopic("alerts")
 						.setValueSerializationSchema(new SimpleStringSchema())

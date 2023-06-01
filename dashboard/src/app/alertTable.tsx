@@ -7,7 +7,7 @@ export default function AlertTable() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:12000/ws');
+    const ws = new WebSocket('ws://localhost:12000/');
 
     console.log('Connecting to websocket');
 

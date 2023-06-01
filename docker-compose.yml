@@ -6,9 +6,9 @@ services:
       context: ./generator
       dockerfile: Dockerfile
     depends_on:
-      - kafka
+      - kafkac
     environment:
-      - KAFKA_BROKERS=kafka:9092
+      - KAFKA_BROKER=kafkac:9092
       - KAFKA_TOPIC=transactions
       - SEED=0
       - CARD_COUNT=10
@@ -23,11 +23,11 @@ services:
     ports:
       - "9000:9000"
     environment:
-      - KAFKA_BROKERCONNECT=kafka:9092
+      - KAFKA_BROKERCONNECT=kafkac:9092
       - JVM_OPTS=-Xms32M -Xmx64M
       - SERVER_SERVLET_CONTEXTPATH=/
     depends_on:
-      - kafka
+      - kafkac
     networks:
       - kafka-network
 
@@ -35,8 +35,10 @@ services:
     build:
       context: ./alerts-notification-api-py
       dockerfile: Dockerfile
+    ports:
+      - "12000:12000"
     depends_on:
-      - kafka
+      - kafkac
     networks:
       - kafka-network
 
@@ -45,14 +47,14 @@ services:
       context: ./alerts-notification-api
       dockerfile: Dockerfile
     ports:
-      - "12000:12000"
+      - "4000:12000"
     depends_on:
-      - kafka
+      - kafkac
     restart: on-failure
     networks:
       - kafka-network
     
-  kafka:
+  kafkac:
     image: "bitnami/kafka:latest"
     ports:
       - '9092:9092'
@@ -60,6 +62,8 @@ services:
       # not recommended for production
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafkac:9092
+      # - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092
       - BITNAMI_DEBUG=yes
     networks:
       - kafka-network

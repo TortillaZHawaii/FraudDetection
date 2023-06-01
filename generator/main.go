@@ -20,7 +20,7 @@ func getEnvOrDefault(key string, defaultVal string) string {
 
 func main() {
 	// Kafka broker addresses
-	brokerList := []string{getEnvOrDefault("KAFKA_BROKER", "kafka:9092")}
+	brokerList := []string{getEnvOrDefault("KAFKA_BROKER", "kafkac:9092")}
 	log.Printf("Kafka broker list: %v\n", brokerList)
 
 	cardOwnersCountEnv := getEnvOrDefault("CARD_OWNERS_COUNT", "100")
