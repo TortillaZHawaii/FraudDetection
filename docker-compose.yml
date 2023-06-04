@@ -13,7 +13,7 @@ services:
       - SEED=0
       - CARD_COUNT=10
       - CARD_OWNERS_COUNT=1
-      - WAIT_TIME_MS=5000
+      - WAIT_TIME_MS=500
     restart: on-failure
     networks:
       - kafka-network
@@ -39,6 +39,7 @@ services:
       - "12000:12000"
     depends_on:
       - kafkac
+    restart: on-failure
     networks:
       - kafka-network
 

@@ -3,7 +3,7 @@ import { CardOwner } from "./cardOwner";
 
 export class CardTransaction {
     amount: number;
-    limitLeft: number;
+    limit_left: number;
     currency: string;
     latitude: number;
     longitude: number;
@@ -13,7 +13,7 @@ export class CardTransaction {
   
     constructor({ amount, limit_left, currency, latitude, longitude, card, owner, utc }: { amount: number; limit_left: number; currency: string; latitude: number; longitude: number; card: any; owner: any; utc: string }) {
         this.amount = amount;
-        this.limitLeft = limit_left;
+        this.limit_left = limit_left;
         this.currency = currency;
         this.latitude = latitude;
         this.longitude = longitude;

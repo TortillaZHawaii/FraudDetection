@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { Alert } from '../lib/alert';
+import { AreaChart, Card, Grid, Tab, TabList, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react";
+import camelcaseKeysDeep from 'camelcase-keys-deep';
 
 export default function AlertTable() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -28,28 +30,44 @@ export default function AlertTable() {
   }, []);
 
   return (
-    <div>
-      <table>
-        <thead>
-          <tr>
-            <th>Transaction ID</th>
-            <th>Amount</th>
-            <th>Reason</th>
-            <th>Owner</th>
-          </tr>
-        </thead>
-        <tbody>
-          {alerts.map((alert) => (
-            <tr key={alert.transaction.utc.toISOString()}>
-              <td>{alert.transaction.utc.toISOString()}</td>
-              <td>{alert.transaction.amount}</td>
-              <td>{alert.reason}</td>
-              <td>{alert.transaction.owner.firstName + alert.transaction.owner.lastName}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <main className="bg-slate-50 p-6 sm:p-10">
+      <Title>Dashboard</Title>
+      <Text>Fraud detection alerts</Text>
+
+      <Grid numColsLg={2} className="mt-6 gap-6">
+        <Card>
+          <AreaChart
+            data={alerts}
+            index="transaction.utc"
+            categories={["transaction.amount"]}
+            />
+        </Card>
+        <Card>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell>Reason</TableHeaderCell>
+                <TableHeaderCell>Amount</TableHeaderCell>
+                <TableHeaderCell>Limit</TableHeaderCell>
+                <TableHeaderCell>Owner</TableHeaderCell>
+                <TableHeaderCell>Exp Date</TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {alerts.map((item) => (
+                <TableRow key={item.transaction.utc + item.reason}>
+                  <TableCell><Text>{item.reason}</Text></TableCell>
+                  <TableCell><Text>{item.transaction.amount}</Text></TableCell>
+                  <TableCell><Text>{item.transaction.limit_left}</Text></TableCell>
+                  <TableCell><Text>{item.transaction.owner.first_name + ' ' + item.transaction.owner.last_name}</Text></TableCell>
+                  <TableCell><Text>{item.transaction.card.exp_month + '/' + item.transaction.card.exp_year}</Text></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
+      </Grid>
+    </main>
   );
 }
 
