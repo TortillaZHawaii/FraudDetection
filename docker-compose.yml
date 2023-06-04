@@ -42,17 +42,17 @@ services:
     networks:
       - kafka-network
 
-  alerts-notification-api:
-    build:
-      context: ./alerts-notification-api
-      dockerfile: Dockerfile
-    ports:
-      - "4000:12000"
-    depends_on:
-      - kafkac
-    restart: on-failure
-    networks:
-      - kafka-network
+  # alerts-notification-api:
+  #   build:
+  #     context: ./alerts-notification-api
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "4000:12000"
+  #   depends_on:
+  #     - kafkac
+  #   restart: on-failure
+  #   networks:
+  #     - kafka-network
     
   kafkac:
     image: "bitnami/kafka:latest"
