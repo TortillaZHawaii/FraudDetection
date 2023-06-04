@@ -40,15 +40,12 @@ export default function AlertTable() {
         </thead>
         <tbody>
           {alerts.map((alert) => (
-            <tr key={alert.transaction.card.cardNumber}>
+            <tr key={alert.transaction.utc.toISOString()}>
+              <td>{alert.transaction.utc.toISOString()}</td>
+              <td>{alert.transaction.amount}</td>
               <td>{alert.reason}</td>
+              <td>{alert.transaction.owner.firstName + alert.transaction.owner.lastName}</td>
             </tr>
-            // <tr key={alert.transaction.utc.toUTCString()}>
-            //   <td>{alert.transaction.utc.toUTCString()}</td>
-            //   <td>{alert.transaction.amount}</td>
-            //   <td>{alert.reason}</td>
-            //   <td>{alert.transaction.owner.firstName + alert.transaction.owner.lastName}</td>
-            // </tr>
           ))}
         </tbody>
       </table>

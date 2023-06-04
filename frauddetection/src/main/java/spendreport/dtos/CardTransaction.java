@@ -1,5 +1,6 @@
 package spendreport.dtos;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
@@ -23,6 +24,7 @@ public class CardTransaction {
     @JsonProperty("owner")
     private CardOwner owner;
     @JsonProperty("utc")
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Date utc;
 
     public static CardTransaction fromString(String s) {
