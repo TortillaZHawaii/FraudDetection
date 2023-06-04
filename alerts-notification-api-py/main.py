@@ -30,6 +30,7 @@ async def kafka_listener():
         alert_message = message.value
         logging.info('Broadcasting alert message to connected clients')
         await broadcast_message(alert_message)
+    logging.info('Kafka consumer stopped')
 
 async def broadcast_message(message):
     if not clients:
@@ -46,7 +47,7 @@ async def broadcast_message(message):
             logging.info('Client disconnected')
             clients.remove(client)
 
-async def websocket_handler(websocket, path):
+async def websocket_handler(websocket):
     logging.info('Client connected')
     clients.add(websocket)
     try:
@@ -65,7 +66,18 @@ async def main():
     
     await asyncio.gather(kafka_task, websocket_task)
 
+async def echo(websocket):
+    async for message in websocket:
+        await websocket.send(message)
+
+async def test():
+    kafka_task = asyncio.create_task(kafka_listener())
+
+    async with serve(echo, websocket_host, websocket_port):
+        await kafka_task  # run forever
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     logging.info('Starting alerts-notification-api')
-    asyncio.run(main())
+    # asyncio.run(main())
+    asyncio.run(test())

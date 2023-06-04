@@ -28,7 +28,7 @@ func getEnvOrDefault(key string, defaultVal string) string {
 }
 
 func (ar *AlertsReader) Listen() {
-	brokerList := []string{getEnvOrDefault("KAFKA_BROKER", "kafka:9092")}
+	brokerList := []string{getEnvOrDefault("KAFKA_BROKER", "kafkac:9092")}
 	log.Printf("Kafka broker list: %v\n", brokerList)
 
 	topic := getEnvOrDefault("KAFKA_TOPIC", "alerts")
