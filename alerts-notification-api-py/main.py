@@ -27,8 +27,7 @@ async def kafka_listener():
         async for msg in consumer:
             logging.info('Received message from Kafka %s', msg.value)
             # Broadcast message to all connected WebSocket clients
-            # Need to convert from bytes to string without b'' prefix
-            broadcast(clients, msg.value)
+            broadcast(clients, msg.value.decode())
     finally:
         await consumer.stop()
 
