@@ -26,7 +26,9 @@ import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.sink.SocketClientSink;
+import spendreport.detectors.ExpiredCardDetector;
+import spendreport.detectors.OverLimitDetector;
+import spendreport.detectors.SmallThenLargeDetector;
 import spendreport.dtos.Alert;
 import spendreport.dtos.CardTransaction;
 
@@ -66,7 +68,11 @@ public class FraudDetectionJob {
 			.process(new SmallThenLargeDetector())
 			.name("small-then-large-alerts");
 
-		DataStream<Alert> alerts = overLimitAlerts.union(smallThenLargeAlerts);
+		DataStream<Alert> expiredCardAlerts = keyedTransactions
+			.process(new ExpiredCardDetector())
+			.name("expired-card-alerts");
+
+		DataStream<Alert> alerts = overLimitAlerts.union(smallThenLargeAlerts).union(expiredCardAlerts);
 
 		KafkaSink<String> alertKafkaSink = KafkaSink.<String>builder()
 				.setBootstrapServers(bootstrapServers)

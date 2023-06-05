@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package spendreport;
+package spendreport.detectors;
 
 
 import org.apache.flink.api.common.state.ValueState;

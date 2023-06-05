@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package spendreport;
+package spendreport.detectors;
 
 
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
@@ -24,20 +24,38 @@ import org.apache.flink.util.Collector;
 import spendreport.dtos.Alert;
 import spendreport.dtos.CardTransaction;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+
 /**
  * Skeleton code for implementing a fraud detector.
  */
-public class OverLimitDetector extends KeyedProcessFunction<String, CardTransaction, Alert> {
+public class ExpiredCardDetector extends KeyedProcessFunction<String, CardTransaction, Alert> {
 
-	private static final long serialVersionUID = 2L;
+	private static final long serialVersionUID = 3L;
 
 	@Override
 	public void processElement(CardTransaction transaction, KeyedProcessFunction<String, CardTransaction, Alert>.Context context, Collector<Alert> collector) throws Exception {
-		if (transaction.getAmount() > transaction.getLimitLeft()) {
+		if (isExpired(transaction)) {
 			Alert alert = new Alert();
-			alert.setReason("Transaction amount is over the limit");
+			alert.setReason("Card is expired");
 			alert.setTransaction(transaction);
 			collector.collect(alert);
 		}
+	}
+
+	private static Boolean isExpired(CardTransaction transaction)
+	{
+		final var card = transaction.getCard();
+		final var expiryYear = card.getExpYear();
+		final var expiryMonth = card.getExpMonth();
+		// for some reason months in java start at 0
+		// we need to find first expired date
+		final var expiredDate = expiryMonth == 12 ? new GregorianCalendar(expiryYear + 1, Calendar.JANUARY, 1).getTime()
+				: new GregorianCalendar(expiryYear, expiryMonth, 1).getTime();
+
+		final var date = transaction.getUtc();
+		return date.after(expiredDate);
 	}
 }
