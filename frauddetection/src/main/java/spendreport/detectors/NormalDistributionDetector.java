@@ -41,7 +41,8 @@ public class NormalDistributionDetector extends KeyedProcessFunction<String, Car
 
 	// Fault-tolerant map-like state
 	private transient ValueState<Double> averageState;
-	private transient ValueState<Double> varianceState;
+	// https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
+	private transient ValueState<Double> mVarianceState;
 	private transient ValueState<Integer> countState;
 
 	// Initialize the state in operator creation time
@@ -53,10 +54,10 @@ public class NormalDistributionDetector extends KeyedProcessFunction<String, Car
 			Types.DOUBLE);
 		averageState = getRuntimeContext().getState(averageDescriptor);
 
-		ValueStateDescriptor<Double> varianceDescriptor = new ValueStateDescriptor<>(
+		ValueStateDescriptor<Double> mVarianceDescriptor = new ValueStateDescriptor<>(
 			"variance",
 			Types.DOUBLE);
-		varianceState = getRuntimeContext().getState(varianceDescriptor);
+		mVarianceState = getRuntimeContext().getState(mVarianceDescriptor);
 
 		ValueStateDescriptor<Integer> countDescriptor = new ValueStateDescriptor<>(
 			"count",
@@ -68,7 +69,7 @@ public class NormalDistributionDetector extends KeyedProcessFunction<String, Car
 	public void processElement(CardTransaction transaction, KeyedProcessFunction<String, CardTransaction, Alert>.Context context, Collector<Alert> collector) throws Exception {
 		// Get the current state for the current key
 		Double average = averageState.value();
-		Double variance = varianceState.value();
+		Double mVariance = mVarianceState.value();
 		Integer count = countState.value();
 
 		if (count == null) {
@@ -92,15 +93,16 @@ public class NormalDistributionDetector extends KeyedProcessFunction<String, Car
 
 		double previousStandardDeviation = 0.0;
 		if (count >= 2) {
-			if (variance == null) {
-				variance = 0.0;
+			if (mVariance == null) {
+				mVariance = 0.0;
 			}
-			previousStandardDeviation = Math.sqrt(variance);
-			variance = variance + (transaction.getAmount() - previousAverage) * (transaction.getAmount() - average);
+			previousStandardDeviation = Math.sqrt(mVariance / count);
+			mVariance = mVariance + (transaction.getAmount() - previousAverage) * (transaction.getAmount() - average);
 		}
 
-		varianceState.update(variance);
-		double standardDeviation = variance == null ? 0.0 : Math.sqrt(variance);
+		mVarianceState.update(mVariance);
+		double variance = mVariance == null ? 0.0 : mVariance / count;
+		double standardDeviation = Math.sqrt(variance);
 
 		LOG.info("Transaction amount: " + transaction.getAmount());
 		LOG.info("Average: " + average + ", Variance: " + variance + ", Standard Deviation: " + standardDeviation +  ", Count: " + count);
