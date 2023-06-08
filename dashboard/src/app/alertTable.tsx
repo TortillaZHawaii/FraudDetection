@@ -42,8 +42,8 @@ export default function AlertTable() {
                 d3.rollups(
                   alerts, 
                   v => v.length,
-                  d => Math.floor(new Date(d.transaction.utc).getTime() / 10000) * 10000,
-                ).map(
+                  d => Math.floor(new Date(d.transaction.utc).getTime() / 30000) * 30000,
+                  ).map(
                   ([k, v]) => 
                   ({seconds: k, Count: v, Time: new Date(k).toLocaleTimeString()})
                 ),
