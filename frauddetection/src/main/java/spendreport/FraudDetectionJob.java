@@ -26,10 +26,9 @@ import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import spendreport.detectors.ExpiredCardDetector;
-import spendreport.detectors.NormalDistributionDetector;
-import spendreport.detectors.OverLimitDetector;
-import spendreport.detectors.SmallThenLargeDetector;
+import org.apache.flink.streaming.api.windowing.assigners.ProcessingTimeSessionWindows;
+import org.apache.flink.streaming.api.windowing.time.Time;
+import spendreport.detectors.*;
 import spendreport.dtos.Alert;
 import spendreport.dtos.CardTransaction;
 
@@ -77,8 +76,17 @@ public class FraudDetectionJob {
 			.process(new NormalDistributionDetector())
 			.name("normal-distribution-alerts");
 
-		DataStream<Alert> alerts = overLimitAlerts.union(smallThenLargeAlerts).union(expiredCardAlerts)
-				.union(normalDistributionAlerts);
+		DataStream<Alert> locationAlerts = keyedTransactions
+			// could be replaced by a larger amount to run in production
+			.window(ProcessingTimeSessionWindows.withGap(Time.seconds(15)))
+			.process(new LocationDetector())
+			.name("location-alerts");
+
+		DataStream<Alert> alerts = overLimitAlerts
+				.union(smallThenLargeAlerts)
+				.union(expiredCardAlerts)
+				.union(normalDistributionAlerts)
+				.union(locationAlerts);
 
 		KafkaSink<String> alertKafkaSink = KafkaSink.<String>builder()
 				.setBootstrapServers(bootstrapServers)

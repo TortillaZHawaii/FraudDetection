@@ -72,6 +72,13 @@ func NewTransactionSource(seed, cardOwnersCount, cardCount int64) *TransactionSo
 	}
 }
 
+func getRandomWarsawCoordinates() (float64, float64) {
+	lowLat, highLat := 52.1, 52.4
+	lowLong, highLong := 20.8, 21.2
+
+	return gofakeit.Float64Range(lowLat, highLat), gofakeit.Float64Range(lowLong, highLong)
+}
+
 func (ts *TransactionSource) GetTransaction() *CardTransaction {
 	i := gofakeit.Number(0, len(ts.Cards)-1)
 
@@ -84,13 +91,14 @@ func (ts *TransactionSource) GetTransaction() *CardTransaction {
 	if limit < 0 {
 		limit = 0
 	}
+	lat, long := getRandomWarsawCoordinates()
 
 	return &CardTransaction{
 		Amount:    amount,
 		LimitLeft: limit,
 		Currency:  "PLN",
-		Latitude:  gofakeit.Latitude(),
-		Longitude: gofakeit.Longitude(),
+		Latitude:  lat,
+		Longitude: long,
 		Card:      &card,
 		Owner:     &cardOwner,
 		UTC:       now,
