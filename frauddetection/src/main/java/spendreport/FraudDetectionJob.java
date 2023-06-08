@@ -27,6 +27,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import spendreport.detectors.ExpiredCardDetector;
+import spendreport.detectors.NormalDistributionDetector;
 import spendreport.detectors.OverLimitDetector;
 import spendreport.detectors.SmallThenLargeDetector;
 import spendreport.dtos.Alert;
@@ -72,7 +73,12 @@ public class FraudDetectionJob {
 			.process(new ExpiredCardDetector())
 			.name("expired-card-alerts");
 
-		DataStream<Alert> alerts = overLimitAlerts.union(smallThenLargeAlerts).union(expiredCardAlerts);
+		DataStream<Alert> normalDistributionAlerts = keyedTransactions
+			.process(new NormalDistributionDetector())
+			.name("normal-distribution-alerts");
+
+		DataStream<Alert> alerts = overLimitAlerts.union(smallThenLargeAlerts).union(expiredCardAlerts)
+				.union(normalDistributionAlerts);
 
 		KafkaSink<String> alertKafkaSink = KafkaSink.<String>builder()
 				.setBootstrapServers(bootstrapServers)

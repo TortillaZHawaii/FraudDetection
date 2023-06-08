@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Alert } from '../lib/alert';
 import { AreaChart, Card, Grid, Tab, TabList, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Text, Title } from "@tremor/react";
-import camelcaseKeysDeep from 'camelcase-keys-deep';
+import * as d3 from 'd3-array';
 
 export default function AlertTable() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -20,7 +20,7 @@ export default function AlertTable() {
     ws.onmessage = (event) => {
       console.log('Received message', event.data);
       const alert = JSON.parse(event.data);
-      setAlerts((alerts) => [...alerts, alert]);
+      setAlerts((alerts) => [alert, ...alerts]);
     };
 
     return () => {
@@ -37,9 +37,21 @@ export default function AlertTable() {
       <Grid numColsLg={2} className="mt-6 gap-6">
         <Card>
           <AreaChart
-            data={alerts}
-            index="transaction.utc"
-            categories={["transaction.amount"]}
+            data={Array.from(
+              d3.sort(
+                d3.rollups(
+                  alerts, 
+                  v => v.length,
+                  d => Math.floor(new Date(d.transaction.utc).getTime() / 10000) * 10000,
+                ).map(
+                  ([k, v]) => 
+                  ({seconds: k, Count: v, Time: new Date(k).toLocaleTimeString()})
+                ),
+                d => d.seconds
+              )
+            )}
+            index="Time"
+            categories={["Count"]}
             />
         </Card>
         <Card>

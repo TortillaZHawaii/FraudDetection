@@ -14,6 +14,7 @@
     "@types/react": "^18.2.6",
     "@types/react-dom": "18.2.4",
     "camelcase-keys-deep": "^0.1.0",
+    "d3-array": "^3.2.4",
     "eslint": "8.41.0",
     "eslint-config-next": "13.4.3",
     "kafkajs": "^2.2.4",

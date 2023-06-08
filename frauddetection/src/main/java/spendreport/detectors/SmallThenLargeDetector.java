@@ -35,7 +35,7 @@ public class SmallThenLargeDetector extends KeyedProcessFunction<String, CardTra
 
 	private static final long serialVersionUID = 1L;
 
-	private static final double SMALL_AMOUNT = 1.00;
+	private static final double SMALL_AMOUNT = 20.00;
 	private static final double LARGE_AMOUNT = 500.00;
 	private static final long ONE_MINUTE = 60 * 1000;
 

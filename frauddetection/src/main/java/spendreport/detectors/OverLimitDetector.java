@@ -32,7 +32,7 @@ public class OverLimitDetector extends KeyedProcessFunction<String, CardTransact
 	private static final long serialVersionUID = 2L;
 
 	@Override
-	public void processElement(CardTransaction transaction, KeyedProcessFunction<String, CardTransaction, Alert>.Context context, Collector<Alert> collector) throws Exception {
+	public void processElement(CardTransaction transaction, KeyedProcessFunction<String, CardTransaction, Alert>.Context context, Collector<Alert> collector) {
 		if (transaction.getAmount() > transaction.getLimitLeft()) {
 			Alert alert = new Alert();
 			alert.setReason("Transaction amount is over the limit");

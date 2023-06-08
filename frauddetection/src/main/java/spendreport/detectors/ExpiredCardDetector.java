@@ -25,7 +25,6 @@ import spendreport.dtos.Alert;
 import spendreport.dtos.CardTransaction;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 
 /**
@@ -36,7 +35,7 @@ public class ExpiredCardDetector extends KeyedProcessFunction<String, CardTransa
 	private static final long serialVersionUID = 3L;
 
 	@Override
-	public void processElement(CardTransaction transaction, KeyedProcessFunction<String, CardTransaction, Alert>.Context context, Collector<Alert> collector) throws Exception {
+	public void processElement(CardTransaction transaction, KeyedProcessFunction<String, CardTransaction, Alert>.Context context, Collector<Alert> collector) {
 		if (isExpired(transaction)) {
 			Alert alert = new Alert();
 			alert.setReason("Card is expired");
@@ -52,7 +51,7 @@ public class ExpiredCardDetector extends KeyedProcessFunction<String, CardTransa
 		final var expiryMonth = card.getExpMonth();
 		// for some reason months in java start at 0
 		// we need to find first expired date
-		final var expiredDate = expiryMonth == 12 ? new GregorianCalendar(expiryYear + 1, Calendar.JANUARY, 1).getTime()
+		final var expiredDate = (expiryMonth == 12) ? new GregorianCalendar(expiryYear + 1, Calendar.JANUARY, 1).getTime()
 				: new GregorianCalendar(expiryYear, expiryMonth, 1).getTime();
 
 		final var date = transaction.getUtc();
