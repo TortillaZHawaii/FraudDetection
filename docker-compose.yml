@@ -11,8 +11,8 @@ services:
       - KAFKA_BROKER=kafkac:9092
       - KAFKA_TOPIC=transactions
       - SEED=0
-      - CARD_COUNT=10
-      - CARD_OWNERS_COUNT=1
+      - CARD_COUNT=12
+      - CARD_OWNERS_COUNT=10
       - WAIT_TIME_MS=500
     restart: on-failure
     networks:

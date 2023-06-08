@@ -2,7 +2,9 @@
 
 Rozwiązanie składa się z wielu modułów.
 
-Projekt można uruchomić korzystając z polecenia `docker compose up`.
+![architecture](docs/diagram.png)
+
+Projekt można uruchomić korzystając z polecenia `docker compose up`. Należy chwilę odczekać, gdyż Kafka się długo uruchamia i dopiero po jej uruchomieniu rozwiązanie zaczyła działać stabilnie.
 
 ## Generator
 Tworzy losowe transakcje które są zapisywane na topic Kafki `transactions` w formacie JSON.
@@ -24,3 +26,6 @@ Zczytuje alerty z topicu Kafki `alerts` i przekazuje je klientom nasłuchującym
 
 ## Dashboard
 Łączy się z Alerts Reader po Websockecie i na żywo wyświetla alerty oraz zlicza je na wykresie w okienkach 30 sekundowych.
+
+## Kafka i Kafdrop
+Kafka ma dwa topici umożliwiające komunikację. Działanie Kafki możemy podejrzeć korzystając z interfejsu graficznego Kafdrop.

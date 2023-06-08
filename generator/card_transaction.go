@@ -52,7 +52,7 @@ func NewTransactionSource(seed, cardOwnersCount, cardCount int64) *TransactionSo
 			),
 			CardType: gofakeit.CreditCardType(),
 			ExpMonth: gofakeit.Number(1, 12),
-			ExpYear:  gofakeit.Number(2021, 2030),
+			ExpYear:  gofakeit.Number(2023, 2030),
 			CVV:      gofakeit.CreditCardCvv(),
 		}
 	}
@@ -79,19 +79,21 @@ func (ts *TransactionSource) GetTransaction() *CardTransaction {
 	cardOwner := ts.CardOwners[i%len(ts.CardOwners)]
 
 	now := time.Now()
-	maxLatency := time.Minute
-	startRange := now.Add(-maxLatency)
-	endRange := now
+	amount := gofakeit.Number(1, 20000)
+	limit := amount + gofakeit.Number(-200, 5000)
+	if limit < 0 {
+		limit = 0
+	}
 
 	return &CardTransaction{
-		Amount:    gofakeit.Number(1, 100000),
-		LimitLeft: gofakeit.Number(0, 100000),
+		Amount:    amount,
+		LimitLeft: limit,
 		Currency:  "PLN",
 		Latitude:  gofakeit.Latitude(),
 		Longitude: gofakeit.Longitude(),
 		Card:      &card,
 		Owner:     &cardOwner,
-		UTC:       gofakeit.DateRange(startRange, endRange).UTC(),
+		UTC:       now,
 	}
 }
 
