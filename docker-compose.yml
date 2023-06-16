@@ -43,18 +43,6 @@ services:
     networks:
       - kafka-network
 
-  # alerts-notification-api:
-  #   build:
-  #     context: ./alerts-notification-api
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "4000:12000"
-  #   depends_on:
-  #     - kafkac
-  #   restart: on-failure
-  #   networks:
-  #     - kafka-network
-    
   kafkac:
     image: "bitnami/kafka:latest"
     ports:
@@ -64,7 +52,6 @@ services:
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafkac:9092
-      # - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092
       - BITNAMI_DEBUG=yes
     networks:
       - kafka-network
