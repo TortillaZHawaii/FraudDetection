@@ -14,9 +14,9 @@ Parametry generatora można zmieniać poprzez parametry w pliku `docker-compose.
 Zarządza i uruchamia algorytmy sprawdzające oszustwa. Czyta z topicu Kafki `transactions`, a zapisuje wyniki do topicu `alerts`.
 
 Jest kilka algorytmów sprawdzających wiarygodność transakcji.
-- `ExpiredCardDetector` - sprawdza czy transakcja nie odbyła się po skończeniu ważności karty,
-- `OverLimitDetector` - sprawdza czy transakcja mieści się w limicie,
-- `SmallThenLargeDetector` - sprawdza czy w okienku minutowym nie dopuszczono się małej transakcji (poniżej 20 zł), po czym wykonano dużą transakcję (powyżej 500 zł),
+- `ExpiredCardDetector` - sprawdza, czy transakcja nie odbyła się po skończeniu ważności karty,
+- `OverLimitDetector` - sprawdza, czy transakcja mieści się w limicie,
+- `SmallThenLargeDetector` - sprawdza, czy w okienku minutowym nie dopuszczono się małej transakcji (poniżej 20 zł), po czym wykonano dużą transakcję (powyżej 500 zł),
 - `NormalDistributionDetector` - oblicza parametry rozkładu normalnego: średnią oraz wariancję, a na ich podstawie odrzuca transakcje które są oddalone od średniej o więcej niż odchylenie standardowe,
 - `LocationDetector` - który sprawdza dla ustalonego "session window" czy w trakcie okna transakcje nie są nadmiarowo oddalone od średniej lokalizacji transakcji w oknie.
 
